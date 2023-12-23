@@ -3,6 +3,8 @@ remote_theme: pmarsceill/just-the-docs
 nav_order: 1
 color_scheme: dark
 
+exclude:
+- README.md
 
 
 author:
