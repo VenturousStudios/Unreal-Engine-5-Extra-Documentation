@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: Action - Add Cheats
 parent: GameFeatures
 nav_order: 1
