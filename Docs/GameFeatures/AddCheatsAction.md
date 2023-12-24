@@ -104,9 +104,8 @@ Facilitates a dynamic and flexible approach to extending cheat functionalities, 
 
 ### CheatManagers
 
-**Type**
 
-TArray<TSoftClassPtr<UCheatManagerExtension>>
+**Type**: TArray<TSoftClassPtr<UCheatManagerExtension>>
 
 **Description**
 
@@ -119,9 +118,8 @@ Dynamic Setup: Allows for a flexible and dynamic setup of cheat functionalities 
 
 ### bLoadCheatManagersAsync
 
-**Type**
 
-bool
+**Type**: bool
 
 **Description**
 
@@ -134,9 +132,8 @@ Conditional Loading: Determines the loading strategy (synchronous vs. asynchrono
 
 ### CheatManagerRegistrationHandle
 
-**Type**
 
-FDelegateHandle
+**Type**: FDelegateHandle
 
 **Description**
 
@@ -149,9 +146,8 @@ Lifecycle Management: Ensures proper management of event listeners during the ac
 
 ### SpawnedCheatManagers
 
-**Type**
 
-TArray<TWeakObjectPtr<UCheatManagerExtension>>
+**Type**: TArray<TWeakObjectPtr<UCheatManagerExtension>>
 
 **Description**
 
@@ -164,9 +160,7 @@ Cleanup and Removal: Used during the deactivation phase to identify and remove a
 
 ### bIsActive
 
-**Type**
-
-bool
+**Type**: bool
 
 **Description**
 
