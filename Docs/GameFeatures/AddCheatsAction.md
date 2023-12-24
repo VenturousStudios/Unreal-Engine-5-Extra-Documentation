@@ -31,142 +31,224 @@ The design of the class aligns with Unreal Engine's emphasis on modular and reus
 
 ---
 
-## Key Components and Functionalities
+## Public Interface
 
-### **Cheat Manager Extensions Management**
+### Methods
 
-**Description**
-  
-This component is responsible for adding and removing cheat manager extensions. It enhances the game's cheat manager by dynamically integrating additional functionalities.
+#### `virtual void OnGameFeatureActivating() override`
 
+This method is called when the game feature is activating. It sets the `bIsActive` flag to true and registers a delegate with the cheat manager to handle cheat manager creation events.
 
-**Functionalities**
+**Parameters**: None
 
-Add Extensions: When a game feature is activated, it registers a callback for cheat manager creation and adds specified cheat manager extensions.
-Remove Extensions: Upon deactivation of the game feature, it removes all added extensions from the cheat manager and cleans up references.
+**Return**: None
 
-**Game Feature Activation and Deactivation**
+#### `virtual void OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context) override`
 
-**Description**
+This method is invoked during the deactivation of the game feature. It unregisters the delegate from the cheat manager and removes all cheat manager extensions that were added.
 
-Overrides methods from UGameFeatureAction to handle specific logic when a game feature is activated or deactivated.
+**Parameters**:
+- `FGameFeatureDeactivatingContext& Context`: A reference to the context of the game feature deactivating.
 
-**Functionalities**
+**Return**: None
 
-OnGameFeatureActivating: Sets the bIsActive flag to true and registers for cheat manager creation.
-OnGameFeatureDeactivating: Unregisters from cheat manager creation, removes extensions, empties the list of spawned cheat managers, and sets bIsActive to false.
+#### `virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) const override` (Editor Only)
 
-**Cheat Manager Creation Handling**
+Used in the editor to validate the data of this class. It checks if all entries in `CheatManagers` are valid and reports any null entries.
 
-**Description**
+**Parameters**:
+- `FDataValidationContext& Context`: A reference to the data validation context.
 
-Provides a mechanism to respond when a cheat manager is created, allowing the class to integrate extensions seamlessly.
+**Return**:
+- `EDataValidationResult`: The result of the data validation, indicating if the data is valid or invalid.
 
-**Functionalities**
+### Properties
 
-OnCheatManagerCreated: Invoked when a cheat manager is created. It cleans out stale pointers and adds extensions to the newly created cheat manager.
+#### `TArray<TSoftClassPtr<UCheatManagerExtension>> CheatManagers`
 
-**Data Validation (Editor-Only)**
+An array of soft class pointers to `UCheatManagerExtension` classes. These classes are set up as cheat managers for the game feature plugin.
 
-**Description**
+**Type**: `TArray<TSoftClassPtr<UCheatManagerExtension>>`
 
-Implements a validation system in the editor to ensure the integrity and correctness of the cheat manager extensions data.
+#### `bool bLoadCheatManagersAsync`
 
-**Functionalities**
-IsDataValid: Checks each entry in the CheatManagers array for validity, reporting errors in the editor for any null entries.
+A boolean flag indicating whether cheat managers should be loaded asynchronously.
 
-**Extension Instantiation**
-
-**Description**
-
-Handles the instantiation of cheat manager extensions and their addition to the game's cheat manager.
-
-**Functionalities**
-
-SpawnCheatManagerExtension:
-
-Creates a new instance of a cheat manager extension and adds it to the cheat manager. It ensures compatibility between the cheat manager and the extension class.
-
-**Additional Notes**
-
-**Asynchronous Loading:**
-Optionally supports asynchronous loading of cheat manager extensions, enhancing performance and reducing loading times.
-
-**Editor and Runtime Usage:**
-Designed for both editor and runtime environments in Unreal Engine, with certain functionalities (like data validation) exclusive to the editor.
-
-**Dynamic Extension Management:**
-Facilitates a dynamic and flexible approach to extending cheat functionalities, aligning with the modular design principles of Unreal Engine.
+**Type**: `bool`
 
 ---
 
-## Properties
+## Private Methods and Properties
 
-### CheatManagers
+### Methods
 
+#### `void OnCheatManagerCreated(UCheatManager* CheatManager)`
 
-**Type**: TArray<TSoftClassPtr<UCheatManagerExtension>>
+This method is a callback that is triggered when a new `UCheatManager` instance is created. It cleans out stale pointers from `SpawnedCheatManagers` and either spawns new cheat manager extensions immediately, loads them asynchronously, or synchronously based on the `bLoadCheatManagersAsync` flag.
 
-**Description**
+**Parameters**:
+- `UCheatManager* CheatManager`: Pointer to the `UCheatManager` instance that was created.
 
-This property holds an array of soft class pointers to UCheatManagerExtension. These pointers reference the cheat manager extensions that are to be set up when the game feature is activated.
+**Return**: None
 
-**Usage**
+#### `void SpawnCheatManagerExtension(UCheatManager* CheatManager, const TSubclassOf<UCheatManagerExtension>& CheatManagerClass)`
 
-Game Feature Configuration: Utilized to specify which cheat manager extensions should be added to the game's cheat manager.
-Dynamic Setup: Allows for a flexible and dynamic setup of cheat functionalities as part of game features.
+Spawns a new cheat manager extension of the specified class and adds it to the `SpawnedCheatManagers` array and the provided `UCheatManager`.
 
-### bLoadCheatManagersAsync
+**Parameters**:
+- `UCheatManager* CheatManager`: The cheat manager to which the extension is to be added.
+- `const TSubclassOf<UCheatManagerExtension>& CheatManagerClass`: The class of the cheat manager extension to be spawned.
 
+**Return**: None
 
-**Type**: bool
+### Properties
 
-**Description**
+#### `FDelegateHandle CheatManagerRegistrationHandle`
 
-A boolean flag that determines whether the cheat manager extensions should be loaded asynchronously.
+A handle to the delegate registered with the cheat manager. This handle is used to unregister the delegate when the game feature is deactivating.
 
-**Usage**
+**Type**: `FDelegateHandle`
 
-Performance Optimization: When set to true, it enables asynchronous loading of cheat manager extensions, which can improve performance by reducing loading times.
-Conditional Loading: Determines the loading strategy (synchronous vs. asynchronous) for cheat manager extensions.
+#### `TArray<TWeakObjectPtr<UCheatManagerExtension>> SpawnedCheatManagers`
 
-### CheatManagerRegistrationHandle
+An array of weak object pointers to `UCheatManagerExtension` instances. This array keeps track of all cheat manager extensions spawned by this class.
 
+**Type**: `TArray<TWeakObjectPtr<UCheatManagerExtension>>`
 
-**Type**: FDelegateHandle
+#### `bool bIsActive`
 
-**Description**
+A boolean flag indicating whether the game feature is currently active. This flag is set to true when the game feature is activating and set to false when deactivating.
 
-Handles the registration for a callback that is invoked when a cheat manager is created. This handle is used to manage the connection to the cheat manager creation event.
+**Type**: `bool`
 
-**Usage**
+---
 
-Event Handling: Facilitates the registration and unregistration of the OnCheatManagerCreated callback.
-Lifecycle Management: Ensures proper management of event listeners during the activation and deactivation of the game feature.
+## Class Members' Details
 
-### SpawnedCheatManagers
+### Methods
 
+#### `OnGameFeatureActivating`
 
-**Type**: TArray<TWeakObjectPtr<UCheatManagerExtension>>
+- **Description**: Called when the game feature is activated. It sets the internal state to active and registers for cheat manager creation events.
+- **Implementation Details**: 
+  - Sets `bIsActive` to `true`.
+  - Registers a delegate with `UCheatManager::RegisterForOnCheatManagerCreated` using `FOnCheatManagerCreated::FDelegate::CreateUObject`.
 
-**Description**
+#### `OnGameFeatureDeactivating`
 
-An array that keeps track of the cheat manager extensions that have been spawned and added to the cheat manager.
+- **Description**: Invoked during the deactivation of the game feature. Cleans up by unregistering the delegate and removing extensions from cheat managers.
+- **Parameters**:
+  - `FGameFeatureDeactivatingContext& Context`: Context information for game feature deactivation.
+- **Implementation Details**: 
+  - Calls `UCheatManager::UnregisterFromOnCheatManagerCreated`.
+  - Iterates over `SpawnedCheatManagers` to remove and empty extensions.
 
-**Usage**
+#### `IsDataValid` (Editor Only)
 
-Extension Tracking: Maintains references to the spawned cheat manager extensions for management purposes.
-Cleanup and Removal: Used during the deactivation phase to identify and remove added extensions.
+- **Description**: Validates the data of the class in the editor. Checks for null entries in `CheatManagers`.
+- **Parameters**:
+  - `FDataValidationContext& Context`: The context for data validation.
+- **Implementation Details**: 
+  - Iterates over `CheatManagers` and validates each entry.
+  - Uses `LOCTEXT` for error formatting.
 
-### bIsActive
+#### `OnCheatManagerCreated`
 
-**Type**: bool
+- **Description**: Callback for when a new `UCheatManager` is created. Manages spawning and loading of cheat manager extensions.
+- **Parameters**:
+  - `UCheatManager* CheatManager`: The created cheat manager instance.
+- **Implementation Details**: 
+  - Cleans out stale pointers from `SpawnedCheatManagers`.
+  - Handles synchronous or asynchronous loading of cheat manager extensions.
 
-**Description**
+#### `SpawnCheatManagerExtension`
 
-Indicates whether the game feature related to cheat manager extensions is currently active.
+- **Description**: Spawns a cheat manager extension and adds it to the cheat manager.
+- **Parameters**:
+  - `UCheatManager* CheatManager`: The cheat manager to add the extension to.
+  - `const TSubclassOf<UCheatManagerExtension>& CheatManagerClass`: The class of the cheat manager extension to spawn.
+- **Implementation Details**: 
+  - Validates the `CheatManagerClass`.
+  - Creates a new instance of `UCheatManagerExtension` and adds it to `SpawnedCheatManagers` and the cheat manager.
 
-**Usage**
+### Properties
 
-Feature State Tracking: Used to determine if the game feature is active, influencing the behavior of methods like OnGameFeatureDeactivating.
-Conditional Logic: Helps in decision-making processes within the class, especially in the context of adding or removing extensions.
+#### `CheatManagers`
+
+- **Description**: Array of cheat manager extension classes to be set up for the game feature plugin.
+- **Type**: `TArray<TSoftClassPtr<UCheatManagerExtension>>`
+
+#### `bLoadCheatManagersAsync`
+
+- **Description**: Flag indicating whether to load cheat manager extensions asynchronously.
+- **Type**: `bool`
+
+#### `CheatManagerRegistrationHandle`
+
+- **Description**: Handle for the delegate registered with the cheat manager for creation events.
+- **Type**: `FDelegateHandle`
+
+#### `SpawnedCheatManagers`
+
+- **Description**: Tracks the cheat manager extensions spawned by this class.
+- **Type**: `TArray<TWeakObjectPtr<UCheatManagerExtension>>`
+
+#### `bIsActive`
+
+- **Description**: Indicates whether the game feature is currently active.
+- **Type**: `bool`
+
+---
+
+## Inheritance and Dependencies
+
+### Inheritance
+
+- **Base Class**: `UGameFeatureAction`
+  - `UGameFeatureAction_AddCheats` is derived from `UGameFeatureAction`, an Unreal Engine base class for game feature actions. It overrides specific methods to provide functionality related to adding cheat managers.
+
+### Dependencies
+
+#### `UCheatManager`
+
+- **Usage**: This class interacts with instances of `UCheatManager`, primarily in `OnCheatManagerCreated` and `SpawnCheatManagerExtension` methods.
+- **Purpose**: `UCheatManager` is utilized to add or remove cheat manager extensions when the game feature is activated or deactivated.
+
+#### `UCheatManagerExtension`
+
+- **Usage**: Used in `SpawnCheatManagerExtension` method and referenced in `CheatManagers` property.
+- **Purpose**: Represents the cheat manager extensions that are spawned and managed by this class.
+
+#### `TSubclassOf`
+
+- **Usage**: Employed in `SpawnCheatManagerExtension` as a parameter type and in `CheatManagers` property.
+- **Purpose**: A template class used to represent subclasses of `UCheatManagerExtension`. It ensures type safety when dealing with class references.
+
+#### `TSoftClassPtr`
+
+- **Usage**: Used in `CheatManagers` property.
+- **Purpose**: Represents a soft reference to a `UCheatManagerExtension` class, allowing for more flexible and efficient class loading, especially relevant for the `bLoadCheatManagersAsync` property.
+
+#### `TWeakObjectPtr`
+
+- **Usage**: Utilized in `SpawnedCheatManagers` property.
+- **Purpose**: Maintains weak references to `UCheatManagerExtension` instances. This is important for managing the lifecycle of these extensions without directly owning them, preventing potential memory issues.
+
+#### `FDelegateHandle`
+
+- **Usage**: Used in `CheatManagerRegistrationHandle` property.
+- **Purpose**: Stores a handle to the delegate registered with the `UCheatManager`, allowing for proper management and unregistration of the delegate.
+
+### Macros and Constants
+
+- `LOCTEXT_NAMESPACE`: Defined as `"GameFeatures"`, it's used in the `IsDataValid` method for localization purposes.
+
+### Preprocessor Directives
+
+- `#if WITH_EDITOR`: Wraps around the `IsDataValid` method, indicating that this method is only compiled and relevant in the editor environment, not in the final game build.
+
+### Additional Class Metadata
+
+- `UCLASS(MinimalAPI, meta=(DisplayName="Add Cheats"))`: 
+  - `MinimalAPI`: Indicates minimal exposure of the class to the engine's API.
+  - `meta=(DisplayName="Add Cheats")`: Sets a more user-friendly display name for the class in the Unreal Editor.
