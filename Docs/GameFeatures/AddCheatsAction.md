@@ -23,7 +23,7 @@ Asynchronous Loading Support: It supports the asynchronous loading of cheat mana
 Editor-Level Data Validation: In the Unreal Engine editor environment, the class includes functionality to validate the data related to cheat managers, ensuring that the setup is correct and ready for use within the game.
 
 Modular and Reusable Design: The design of the class aligns with Unreal Engine's emphasis on modular and reusable components, making it easier for developers to implement and manage cheat-related features across different projects or game modules.
-
+---
 ## Key Components and Functionalities
 
 1. Cheat Manager Extensions Management
@@ -62,4 +62,56 @@ Additional Notes
 Asynchronous Loading: Optionally supports asynchronous loading of cheat manager extensions, enhancing performance and reducing loading times.
 Editor and Runtime Usage: Designed for both editor and runtime environments in Unreal Engine, with certain functionalities (like data validation) exclusive to the editor.
 Dynamic Extension Management: Facilitates a dynamic and flexible approach to extending cheat functionalities, aligning with the modular design principles of Unreal Engine.
+---
+## Properties
 
+1. CheatManagers
+Type
+TArray<TSoftClassPtr<UCheatManagerExtension>>
+
+Description
+This property holds an array of soft class pointers to UCheatManagerExtension. These pointers reference the cheat manager extensions that are to be set up when the game feature is activated.
+
+Usage
+Game Feature Configuration: Utilized to specify which cheat manager extensions should be added to the game's cheat manager.
+Dynamic Setup: Allows for a flexible and dynamic setup of cheat functionalities as part of game features.
+2. bLoadCheatManagersAsync
+Type
+bool
+
+Description
+A boolean flag that determines whether the cheat manager extensions should be loaded asynchronously.
+
+Usage
+Performance Optimization: When set to true, it enables asynchronous loading of cheat manager extensions, which can improve performance by reducing loading times.
+Conditional Loading: Determines the loading strategy (synchronous vs. asynchronous) for cheat manager extensions.
+3. CheatManagerRegistrationHandle
+Type
+FDelegateHandle
+
+Description
+Handles the registration for a callback that is invoked when a cheat manager is created. This handle is used to manage the connection to the cheat manager creation event.
+
+Usage
+Event Handling: Facilitates the registration and unregistration of the OnCheatManagerCreated callback.
+Lifecycle Management: Ensures proper management of event listeners during the activation and deactivation of the game feature.
+4. SpawnedCheatManagers
+Type
+TArray<TWeakObjectPtr<UCheatManagerExtension>>
+
+Description
+An array that keeps track of the cheat manager extensions that have been spawned and added to the cheat manager.
+
+Usage
+Extension Tracking: Maintains references to the spawned cheat manager extensions for management purposes.
+Cleanup and Removal: Used during the deactivation phase to identify and remove added extensions.
+5. bIsActive
+Type
+bool
+
+Description
+Indicates whether the game feature related to cheat manager extensions is currently active.
+
+Usage
+Feature State Tracking: Used to determine if the game feature is active, influencing the behavior of methods like OnGameFeatureDeactivating.
+Conditional Logic: Helps in decision-making processes within the class, especially in the context of adding or removing extensions.
