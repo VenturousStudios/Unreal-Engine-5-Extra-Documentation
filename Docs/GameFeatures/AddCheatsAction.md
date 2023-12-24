@@ -52,7 +52,7 @@ This method is invoked during the deactivation of the game feature. It unregiste
 
 **Return**: None
 
-#### `virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) const override` (Editor Only)
+### `virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) const override` (Editor Only)
 
 Used in the editor to validate the data of this class. It checks if all entries in `CheatManagers` are valid and reports any null entries.
 
@@ -234,7 +234,7 @@ A boolean flag indicating whether the game feature is currently active. This fla
 - **Usage**: Utilized in `SpawnedCheatManagers` property.
 - **Purpose**: Maintains weak references to `UCheatManagerExtension` instances. This is important for managing the lifecycle of these extensions without directly owning them, preventing potential memory issues.
 
-#### `FDelegateHandle`
+### `FDelegateHandle`
 
 - **Usage**: Used in `CheatManagerRegistrationHandle` property.
 - **Purpose**: Stores a handle to the delegate registered with the `UCheatManager`, allowing for proper management and unregistration of the delegate.
