@@ -35,7 +35,7 @@ The design of the class aligns with Unreal Engine's emphasis on modular and reus
 
 ### Methods
 
-#### `virtual void OnGameFeatureActivating() override`
+### `virtual void OnGameFeatureActivating() override`
 
 This method is called when the game feature is activating. It sets the `bIsActive` flag to true and registers a delegate with the cheat manager to handle cheat manager creation events.
 
@@ -43,7 +43,7 @@ This method is called when the game feature is activating. It sets the `bIsActiv
 
 **Return**: None
 
-#### `virtual void OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context) override`
+### `virtual void OnGameFeatureDeactivating(FGameFeatureDeactivatingContext& Context) override`
 
 This method is invoked during the deactivation of the game feature. It unregisters the delegate from the cheat manager and removes all cheat manager extensions that were added.
 
@@ -64,13 +64,13 @@ Used in the editor to validate the data of this class. It checks if all entries 
 
 ### Properties
 
-#### `TArray<TSoftClassPtr<UCheatManagerExtension>> CheatManagers`
+### `TArray<TSoftClassPtr<UCheatManagerExtension>> CheatManagers`
 
 An array of soft class pointers to `UCheatManagerExtension` classes. These classes are set up as cheat managers for the game feature plugin.
 
 **Type**: `TArray<TSoftClassPtr<UCheatManagerExtension>>`
 
-#### `bool bLoadCheatManagersAsync`
+### `bool bLoadCheatManagersAsync`
 
 A boolean flag indicating whether cheat managers should be loaded asynchronously.
 
@@ -82,7 +82,7 @@ A boolean flag indicating whether cheat managers should be loaded asynchronously
 
 ### Methods
 
-#### `void OnCheatManagerCreated(UCheatManager* CheatManager)`
+### `void OnCheatManagerCreated(UCheatManager* CheatManager)`
 
 This method is a callback that is triggered when a new `UCheatManager` instance is created. It cleans out stale pointers from `SpawnedCheatManagers` and either spawns new cheat manager extensions immediately, loads them asynchronously, or synchronously based on the `bLoadCheatManagersAsync` flag.
 
@@ -91,7 +91,7 @@ This method is a callback that is triggered when a new `UCheatManager` instance 
 
 **Return**: None
 
-#### `void SpawnCheatManagerExtension(UCheatManager* CheatManager, const TSubclassOf<UCheatManagerExtension>& CheatManagerClass)`
+### `void SpawnCheatManagerExtension(UCheatManager* CheatManager, const TSubclassOf<UCheatManagerExtension>& CheatManagerClass)`
 
 Spawns a new cheat manager extension of the specified class and adds it to the `SpawnedCheatManagers` array and the provided `UCheatManager`.
 
@@ -103,19 +103,19 @@ Spawns a new cheat manager extension of the specified class and adds it to the `
 
 ### Properties
 
-#### `FDelegateHandle CheatManagerRegistrationHandle`
+### `FDelegateHandle CheatManagerRegistrationHandle`
 
 A handle to the delegate registered with the cheat manager. This handle is used to unregister the delegate when the game feature is deactivating.
 
 **Type**: `FDelegateHandle`
 
-#### `TArray<TWeakObjectPtr<UCheatManagerExtension>> SpawnedCheatManagers`
+### `TArray<TWeakObjectPtr<UCheatManagerExtension>> SpawnedCheatManagers`
 
 An array of weak object pointers to `UCheatManagerExtension` instances. This array keeps track of all cheat manager extensions spawned by this class.
 
 **Type**: `TArray<TWeakObjectPtr<UCheatManagerExtension>>`
 
-#### `bool bIsActive`
+### `bool bIsActive`
 
 A boolean flag indicating whether the game feature is currently active. This flag is set to true when the game feature is activating and set to false when deactivating.
 
@@ -127,14 +127,14 @@ A boolean flag indicating whether the game feature is currently active. This fla
 
 ### Methods
 
-#### `OnGameFeatureActivating`
+### `OnGameFeatureActivating`
 
 - **Description**: Called when the game feature is activated. It sets the internal state to active and registers for cheat manager creation events.
 - **Implementation Details**: 
   - Sets `bIsActive` to `true`.
   - Registers a delegate with `UCheatManager::RegisterForOnCheatManagerCreated` using `FOnCheatManagerCreated::FDelegate::CreateUObject`.
 
-#### `OnGameFeatureDeactivating`
+### `OnGameFeatureDeactivating`
 
 - **Description**: Invoked during the deactivation of the game feature. Cleans up by unregistering the delegate and removing extensions from cheat managers.
 - **Parameters**:
@@ -143,7 +143,7 @@ A boolean flag indicating whether the game feature is currently active. This fla
   - Calls `UCheatManager::UnregisterFromOnCheatManagerCreated`.
   - Iterates over `SpawnedCheatManagers` to remove and empty extensions.
 
-#### `IsDataValid` (Editor Only)
+### `IsDataValid` (Editor Only)
 
 - **Description**: Validates the data of the class in the editor. Checks for null entries in `CheatManagers`.
 - **Parameters**:
@@ -152,7 +152,7 @@ A boolean flag indicating whether the game feature is currently active. This fla
   - Iterates over `CheatManagers` and validates each entry.
   - Uses `LOCTEXT` for error formatting.
 
-#### `OnCheatManagerCreated`
+### `OnCheatManagerCreated`
 
 - **Description**: Callback for when a new `UCheatManager` is created. Manages spawning and loading of cheat manager extensions.
 - **Parameters**:
@@ -161,7 +161,7 @@ A boolean flag indicating whether the game feature is currently active. This fla
   - Cleans out stale pointers from `SpawnedCheatManagers`.
   - Handles synchronous or asynchronous loading of cheat manager extensions.
 
-#### `SpawnCheatManagerExtension`
+### `SpawnCheatManagerExtension`
 
 - **Description**: Spawns a cheat manager extension and adds it to the cheat manager.
 - **Parameters**:
@@ -173,27 +173,27 @@ A boolean flag indicating whether the game feature is currently active. This fla
 
 ### Properties
 
-#### `CheatManagers`
+### `CheatManagers`
 
 - **Description**: Array of cheat manager extension classes to be set up for the game feature plugin.
 - **Type**: `TArray<TSoftClassPtr<UCheatManagerExtension>>`
 
-#### `bLoadCheatManagersAsync`
+### `bLoadCheatManagersAsync`
 
 - **Description**: Flag indicating whether to load cheat manager extensions asynchronously.
 - **Type**: `bool`
 
-#### `CheatManagerRegistrationHandle`
+### `CheatManagerRegistrationHandle`
 
 - **Description**: Handle for the delegate registered with the cheat manager for creation events.
 - **Type**: `FDelegateHandle`
 
-#### `SpawnedCheatManagers`
+### `SpawnedCheatManagers`
 
 - **Description**: Tracks the cheat manager extensions spawned by this class.
 - **Type**: `TArray<TWeakObjectPtr<UCheatManagerExtension>>`
 
-#### `bIsActive`
+### `bIsActive`
 
 - **Description**: Indicates whether the game feature is currently active.
 - **Type**: `bool`
@@ -209,27 +209,27 @@ A boolean flag indicating whether the game feature is currently active. This fla
 
 ### Dependencies
 
-#### `UCheatManager`
+### `UCheatManager`
 
 - **Usage**: This class interacts with instances of `UCheatManager`, primarily in `OnCheatManagerCreated` and `SpawnCheatManagerExtension` methods.
 - **Purpose**: `UCheatManager` is utilized to add or remove cheat manager extensions when the game feature is activated or deactivated.
 
-#### `UCheatManagerExtension`
+### `UCheatManagerExtension`
 
 - **Usage**: Used in `SpawnCheatManagerExtension` method and referenced in `CheatManagers` property.
 - **Purpose**: Represents the cheat manager extensions that are spawned and managed by this class.
 
-#### `TSubclassOf`
+### `TSubclassOf`
 
 - **Usage**: Employed in `SpawnCheatManagerExtension` as a parameter type and in `CheatManagers` property.
 - **Purpose**: A template class used to represent subclasses of `UCheatManagerExtension`. It ensures type safety when dealing with class references.
 
-#### `TSoftClassPtr`
+### `TSoftClassPtr`
 
 - **Usage**: Used in `CheatManagers` property.
 - **Purpose**: Represents a soft reference to a `UCheatManagerExtension` class, allowing for more flexible and efficient class loading, especially relevant for the `bLoadCheatManagersAsync` property.
 
-#### `TWeakObjectPtr`
+### `TWeakObjectPtr`
 
 - **Usage**: Utilized in `SpawnedCheatManagers` property.
 - **Purpose**: Maintains weak references to `UCheatManagerExtension` instances. This is important for managing the lifecycle of these extensions without directly owning them, preventing potential memory issues.
