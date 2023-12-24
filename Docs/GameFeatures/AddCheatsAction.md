@@ -33,101 +33,146 @@ The design of the class aligns with Unreal Engine's emphasis on modular and reus
 
 ## Key Components and Functionalities
 
-1. Cheat Manager Extensions Management
-Description
+### **Cheat Manager Extensions Management**
+
+**Description**
+  
 This component is responsible for adding and removing cheat manager extensions. It enhances the game's cheat manager by dynamically integrating additional functionalities.
 
-Functionalities
+
+**Functionalities**
+
 Add Extensions: When a game feature is activated, it registers a callback for cheat manager creation and adds specified cheat manager extensions.
 Remove Extensions: Upon deactivation of the game feature, it removes all added extensions from the cheat manager and cleans up references.
-2. Game Feature Activation and Deactivation
-Description
+
+**Game Feature Activation and Deactivation**
+
+**Description**
+
 Overrides methods from UGameFeatureAction to handle specific logic when a game feature is activated or deactivated.
 
-Functionalities
+**Functionalities**
+
 OnGameFeatureActivating: Sets the bIsActive flag to true and registers for cheat manager creation.
 OnGameFeatureDeactivating: Unregisters from cheat manager creation, removes extensions, empties the list of spawned cheat managers, and sets bIsActive to false.
 
-3. Cheat Manager Creation Handling
-Description
+**Cheat Manager Creation Handling**
+
+**Description**
+
 Provides a mechanism to respond when a cheat manager is created, allowing the class to integrate extensions seamlessly.
 
-Functionalities
+**Functionalities**
+
 OnCheatManagerCreated: Invoked when a cheat manager is created. It cleans out stale pointers and adds extensions to the newly created cheat manager.
 
-4. Data Validation (Editor-Only)
-Description
+**Data Validation (Editor-Only)**
+
+**Description**
+
 Implements a validation system in the editor to ensure the integrity and correctness of the cheat manager extensions data.
 
-Functionalities
+**Functionalities**
 IsDataValid: Checks each entry in the CheatManagers array for validity, reporting errors in the editor for any null entries.
 
-5. Extension Instantiation
-Description
+**Extension Instantiation**
+
+**Description**
+
 Handles the instantiation of cheat manager extensions and their addition to the game's cheat manager.
 
-Functionalities
+**Functionalities**
 
 SpawnCheatManagerExtension:
+
 Creates a new instance of a cheat manager extension and adds it to the cheat manager. It ensures compatibility between the cheat manager and the extension class.
 
-Additional Notes
+**Additional Notes**
 
-Asynchronous Loading: Optionally supports asynchronous loading of cheat manager extensions, enhancing performance and reducing loading times.
-Editor and Runtime Usage: Designed for both editor and runtime environments in Unreal Engine, with certain functionalities (like data validation) exclusive to the editor.
-Dynamic Extension Management: Facilitates a dynamic and flexible approach to extending cheat functionalities, aligning with the modular design principles of Unreal Engine.
+**Asynchronous Loading:**
+Optionally supports asynchronous loading of cheat manager extensions, enhancing performance and reducing loading times.
+
+**Editor and Runtime Usage:**
+Designed for both editor and runtime environments in Unreal Engine, with certain functionalities (like data validation) exclusive to the editor.
+
+**Dynamic Extension Management:**
+Facilitates a dynamic and flexible approach to extending cheat functionalities, aligning with the modular design principles of Unreal Engine.
 
 ---
 
 ## Properties
 
-1. CheatManagers
-Type
+### CheatManagers
+
+**Type**
+
 TArray<TSoftClassPtr<UCheatManagerExtension>>
 
-Description
+**Description**
+
 This property holds an array of soft class pointers to UCheatManagerExtension. These pointers reference the cheat manager extensions that are to be set up when the game feature is activated.
 
-Usage
+**Usage**
+
 Game Feature Configuration: Utilized to specify which cheat manager extensions should be added to the game's cheat manager.
 Dynamic Setup: Allows for a flexible and dynamic setup of cheat functionalities as part of game features.
-2. bLoadCheatManagersAsync
-Type
+
+### bLoadCheatManagersAsync
+
+**Type**
+
 bool
 
-Description
+**Description**
+
 A boolean flag that determines whether the cheat manager extensions should be loaded asynchronously.
 
-Usage
+**Usage**
+
 Performance Optimization: When set to true, it enables asynchronous loading of cheat manager extensions, which can improve performance by reducing loading times.
 Conditional Loading: Determines the loading strategy (synchronous vs. asynchronous) for cheat manager extensions.
-3. CheatManagerRegistrationHandle
-Type
+
+### CheatManagerRegistrationHandle
+
+**Type**
+
 FDelegateHandle
 
-Description
+**Description**
+
 Handles the registration for a callback that is invoked when a cheat manager is created. This handle is used to manage the connection to the cheat manager creation event.
 
-Usage
+**Usage**
+
 Event Handling: Facilitates the registration and unregistration of the OnCheatManagerCreated callback.
 Lifecycle Management: Ensures proper management of event listeners during the activation and deactivation of the game feature.
-4. SpawnedCheatManagers
-Type
+
+### SpawnedCheatManagers
+
+**Type**
+
 TArray<TWeakObjectPtr<UCheatManagerExtension>>
 
-Description
+**Description**
+
 An array that keeps track of the cheat manager extensions that have been spawned and added to the cheat manager.
 
-Usage
+**Usage**
+
 Extension Tracking: Maintains references to the spawned cheat manager extensions for management purposes.
 Cleanup and Removal: Used during the deactivation phase to identify and remove added extensions.
-5. bIsActive
-Type
+
+### bIsActive
+
+**Type**
+
 bool
 
-Description
+**Description**
+
 Indicates whether the game feature related to cheat manager extensions is currently active.
 
-Usage
+**Usage**
+
 Feature State Tracking: Used to determine if the game feature is active, influencing the behavior of methods like OnGameFeatureDeactivating.
 Conditional Logic: Helps in decision-making processes within the class, especially in the context of adding or removing extensions.
