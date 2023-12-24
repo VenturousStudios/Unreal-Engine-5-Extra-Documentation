@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Action - Add Cheats
-parent: GameFeatures
+parent: Game Features
 nav_order: 1
 ---
 # Add Cheats Action
