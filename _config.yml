@@ -1,4 +1,5 @@
 name: Unreal Engine 5 Extra Documentation
+description: Additional documentation for Unreal Engine 5, created by Polysiens.
 remote_theme: pmarsceill/just-the-docs
 color_scheme: dark
 
