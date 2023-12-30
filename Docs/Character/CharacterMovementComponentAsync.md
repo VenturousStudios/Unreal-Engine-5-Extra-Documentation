@@ -5,7 +5,7 @@ parent: Character
 nav_order: 1
 ---
 
-Link: [Character Movement Component Async]([URL](https://github.com/EpicGames/UnrealEngine/blob/072300df18a94f18077ca20a14224b5d99fee872/Engine/Source/Runtime/Engine/Private/CharacterMovementComponentAsyncInput.cpp#L106 "You need access to Epic Games github repository to see this link")
+Link: [Character Movement Component Async](https://github.com/EpicGames/UnrealEngine/blob/072300df18a94f18077ca20a14224b5d99fee872/Engine/Source/Runtime/Engine/Private/CharacterMovementComponentAsyncInput.cpp#L106 "You need access to Epic Games github repository to see this link")
 
 # Character Movement Component Async Class Documentation
 
