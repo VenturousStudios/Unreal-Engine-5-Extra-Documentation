@@ -7,15 +7,15 @@ nav_order: 1
 
 Link: [Character Movement Component Async]([URL](https://github.com/EpicGames/UnrealEngine/blob/072300df18a94f18077ca20a14224b5d99fee872/Engine/Source/Runtime/Engine/Private/CharacterMovementComponentAsync.cpp#L106 "You need access to Epic Games github repository to see this link")
 
-# FCharacterMovementComponentAsyncInput Class Documentation
+# Character Movement Component Async Class Documentation
 
 ## Overview
 
-`FCharacterMovementComponentAsyncInput` is a class designed for handling character movement in a game environment, particularly focusing on asynchronous processing. This class is part of the Unreal Engine 5 framework and extends basic character movement functionalities with enhanced network and computational performance capabilities.
+`FCharacterMovementComponentAsync` is a class designed for handling character movement in a game environment, particularly focusing on asynchronous processing. This class is part of the Unreal Engine 5 framework and extends basic character movement functionalities with enhanced network and computational performance capabilities.
 
 ## Header Inclusions
 
-The `FCharacterMovementComponentAsyncInput` class includes several header files necessary for its operation within the Unreal Engine framework:
+The `FCharacterMovementComponentAsync` class includes several header files necessary for its operation within the Unreal Engine framework:
 
 1. **CharacterMovementComponentAsync.h**: The primary header for the asynchronous character movement component.
 2. **GameFramework/CharacterMovementComponent.h**: Provides the base functionalities of character movement within the game framework.
@@ -31,7 +31,7 @@ Additionally, it utilizes a macro `UE_INLINE_GENERATED_CPP_BY_NAME(CharacterMove
 
 ### Synopsis
 
-The `FCharacterMovementComponentAsyncInput` class is designed to process and simulate character movement asynchronously. This approach is particularly beneficial in networked games or scenarios with high computational demands, as it allows for more responsive and accurate character movements.
+The `FCharacterMovementComponentAsync` class is designed to process and simulate character movement asynchronously. This approach is particularly beneficial in networked games or scenarios with high computational demands, as it allows for more responsive and accurate character movements.
 
 ### Responsibilities
 
@@ -40,7 +40,7 @@ The `FCharacterMovementComponentAsyncInput` class is designed to process and sim
 - **Interaction with Game World**: Manages the character's interaction with the physical game world, including collisions and physics-based reactions.
 - **Asynchronous Processing**: Enhances movement responsiveness and accuracy in networked or computationally complex scenarios by processing movements asynchronously.
 
-# Documentation for `FCharacterMovementComponentAsyncInput` Member Functions
+# Documentation for `FCharacterMovementComponentAsync` Member Functions
 
 ## `Simulate`
 
@@ -279,12 +279,364 @@ The `MaintainHorizontalGroundVelocity` function ensures that the character's hor
 2. **Mode Transition**: Updates the character's movement mode to the new mode, handling any necessary adjustments or initializations.
 3. **Post-Mode-Change Handling**: Performs additional logic that may be required after changing the movement mode, such as updating physics or animation states.
 
-# Documentation for `FCharacterMovementComponentAsyncInput` Utility Functions and Private Members
+## OnMovementModeChanged Method
+
+### Description
+The `OnMovementModeChanged` method is responsible for updating the character's state and movement parameters when there is a change in the movement mode, such as transitioning from walking to falling.
+
+#### Parameters
+- `PreviousMovementMode`: The movement mode the character was in before the change.
+- `PreviousCustomMode`: A custom mode value associated with the previous movement mode.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`, where the resulting state and movement parameters are stored.
+
+#### Behavior
+- Checks if valid data is present; if not, the function returns early.
+- Updates collision settings if transitioning to or from navigation walking (`MOVE_NavWalking`).
+- Adjusts velocity, maintains base location, and updates the ground movement mode when changing to walking (`MOVE_Walking`).
+- Clears current floor information and resets base-related properties when transitioning to other movement modes like falling (`MOVE_Falling`) or none (`MOVE_None`).
+
+---
+
+## FindFloor Method
+
+### Description
+`FindFloor` determines if there is a floor beneath the character, and if so, it characterizes that floor based on its properties.
+
+#### Parameters
+- `CapsuleLocation`: The location of the character's capsule component.
+- `OutFloorResult`: The result of the floor finding, including information about the floor's properties.
+- `bCanUseCachedLocation`: A flag indicating if cached location data can be used.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+- `DownwardSweepResult`: Optional parameter providing results from a previous downward sweep.
+
+#### Behavior
+- If collision is disabled or no valid data is present, the method returns early, indicating no floor.
+- Adjusts the floor search parameters based on whether the character is moving on the ground.
+- Performs a sweep test to find the floor if conditions like teleportation or forced floor check are met.
+- Validates the floor result and makes adjustments if necessary, such as checking for perchable surfaces.
+
+---
+
+## ComputeFloorDist Method
+
+### Description
+`ComputeFloorDist` calculates the distance from the character to the floor and determines the floor's properties, including whether it's walkable.
+
+#### Parameters
+- `CapsuleLocation`: The location of the character's capsule component.
+- `LineDistance`: The maximum distance for line trace checks.
+- `SweepDistance`: The maximum distance for sweep checks.
+- `OutFloorResult`: The result of the floor computation.
+- `SweepRadius`: The radius used for sweep checks.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+- `DownwardSweepResult`: Optional results from a previous downward sweep.
+
+#### Behavior
+- Clears the previous floor result and calculates the character's size for collision checks.
+- Performs a sweep test if conditions are met, such as no valid previous sweep result being provided.
+- Conducts a line trace to find the floor if the sweep doesn't provide a blocking hit.
+- Determines whether the detected floor is walkable based on the hit result.
+
+---
+
+## FloorSweepTest Method
+
+### Description
+`FloorSweepTest` conducts a sweep test to detect the floor beneath the character, considering the character's shape and collision settings.
+
+#### Parameters
+- `OutHit`: The hit result of the sweep test.
+- `Start`: The starting location of the sweep.
+- `End`: The ending location of the sweep.
+- `TraceChannel`: The collision channel to use for the sweep.
+- `CollisionShape`: The shape used for the sweep.
+- `Params`: The collision query parameters.
+- `ResponseParam`: The collision response parameters.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+
+#### Behavior
+- Determines whether to perform a standard capsule sweep or a flat base check, based on the `bUseFlatBaseForFloorChecks` flag.
+- Executes the sweep test using the world's collision system.
+- Optionally performs the test with a box shape if the flat base check is enabled.
+
+---
+
+## IsWithinEdgeTolerance Method
+
+### Description
+`IsWithinEdgeTolerance` checks if a point (usually from a hit result) is within a specified tolerance from the edge of the character's capsule.
+
+#### Parameters
+- `CapsuleLocation`: The center location of the character's capsule.
+- `TestImpactPoint`: The point to test against the capsule edge.
+- `CapsuleRadius`: The radius of the character's capsule.
+
+#### Behavior
+- Computes the 2D distance squared from the capsule's center to the test impact point.
+- Compares this distance against a calculated tolerance radius, determining if the impact point is within edge tolerance.
+- Returns true if the impact point is within the tolerance, indicating it's near the edge of the capsule.
+
+## IsWalkable Method
+
+### Description
+The `IsWalkable` method determines if a surface, based on the hit result from collision detection, is walkable for the character.
+
+#### Parameters
+- `Hit`: The hit result from a collision check which contains information about the surface.
+
+#### Behavior
+- Checks if the hit result is a valid blocking hit; if not, the surface is considered non-walkable.
+- Ensures that the surface is not excessively steep by comparing the surface normal's Z-component to a predefined walkable floor angle (stored in `WalkableFloorZ`).
+- Returns `true` if the surface is not too steep, otherwise `false`.
+
+## UpdateCharacterStateAfterMovement Method
+
+### Description
+`UpdateCharacterStateAfterMovement` updates the character's state, like crouching, after movement has occurred.
+
+#### Parameters
+- `DeltaSeconds`: The time elapsed since the last movement update.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`, used to update the character's state.
+
+#### Behavior
+- Checks the character's role and updates the crouched state if necessary.
+- This method is specifically designed to handle state changes in non-proxy characters.
+
+## GetSimulationTimeStep Method
+
+### Description
+`GetSimulationTimeStep` computes the time step to be used for the physics simulation, ensuring that the simulation remains stable under various conditions.
+
+#### Parameters
+- `RemainingTime`: The remaining time for which the simulation needs to be run.
+- `Iterations`: The number of iterations the simulation has already performed.
+
+#### Behavior
+- Adjusts the `RemainingTime` if it exceeds the maximum allowed time step (`MaxSimulationTimeStep`), to avoid large time steps that can lead to instability.
+- The method ensures the time step is not smaller than a minimum threshold (`MIN_TICK_TIME`) to avoid potential divide-by-zero errors.
+- Returns the computed time step to be used for the simulation.
+
+## CalcVelocity Method
+
+### Description
+`CalcVelocity` calculates the character's velocity based on factors like acceleration, friction, and applied braking.
+
+#### Parameters
+- `DeltaTime`: The time elapsed since the last update.
+- `Friction`: The friction coefficient affecting the character's movement.
+- `bFluid`: A flag indicating if the character is moving through a fluid, affecting drag.
+- `BrakingDeceleration`: The deceleration applied when the character is braking.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`, containing the resulting velocity.
+
+#### Behavior
+- Handles cases where velocity calculation should not occur, like when root motion is used.
+- Applies friction and deceleration to adjust the character's velocity.
+- Handles acceleration, including forced acceleration, based on the character's current state and movement requests.
+- Caps the velocity based on maximum speed limits, considering various movement modes and conditions.
+
+## ApplyRequestedMove Method
+
+### Description
+`ApplyRequestedMove` processes a requested movement, adjusting the character's acceleration and velocity accordingly.
+
+#### Parameters
+- `DeltaTime`: The time elapsed since the last movement update.
+- `MaxAccel`: The maximum allowed acceleration.
+- `MaxSpeed`: The maximum allowed speed.
+- `Friction`: The friction coefficient affecting movement.
+- `BrakingDeceleration`: The deceleration applied when braking.
+- `OutAcceleration`: Output parameter for the resulting acceleration.
+- `OutRequestedSpeed`: Output parameter for the requested speed after processing.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+
+#### Behavior
+- Processes the character's requested velocity if available (`Output.bHasRequestedVelocity`).
+- Computes the requested movement direction and speed, considering the maximum speed and acceleration limits.
+- Determines the appropriate acceleration to reach the requested velocity, considering current speed and direction.
+- Applies the computed acceleration and velocity adjustments to the character's movement output.
+- Returns `true` if a requested move was applied, otherwise `false`.
+
+# FCharacterMovementComponentAsync Documentation
+
+## ShouldComputeAccelerationToReachRequestedVelocity Method
+
+### Description
+Determines whether acceleration should be computed to reach a specified requested velocity during character movement.
+
+#### Parameters
+- `RequestedSpeed`: The speed that the character is trying to achieve.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput` containing the character's current movement state.
+
+#### Behavior
+- Compares the character's current velocity against the requested speed.
+- If the current velocity is less than the requested speed (with a small buffer), returns `true` to indicate that acceleration calculation is necessary.
+- Otherwise, returns `false`, suggesting direct velocity adjustment can be used.
+
+## GetMinAnalogSpeed Method
+
+### Description
+Retrieves the minimum analog speed for the character based on the current movement mode.
+
+#### Parameters
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput` containing the current movement mode.
+
+#### Behavior
+- Switches based on the character's current movement mode (`Output.MovementMode`).
+- Returns `MinAnalogWalkSpeed` for walking, navigation walking, and falling modes.
+- Returns `0.f` for other movement modes, indicating no minimum analog speed is applicable.
+
+## GetMaxBrakingDeceleration Method
+
+### Description
+Provides the maximum braking deceleration value for the character based on the current movement mode.
+
+#### Parameters
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput` containing the current movement mode.
+
+#### Behavior
+- Switches based on the character's current movement mode (`Output.MovementMode`).
+- Returns different deceleration values for walking, falling, swimming, and flying modes, each defined by respective member variables like `BrakingDecelerationWalking`.
+- Returns `0.f` for custom and none movement modes, indicating no braking deceleration.
+
+## ApplyVelocityBraking Method
+
+### Description
+Applies braking to the character's velocity to slow down or stop, based on current friction and braking deceleration.
+
+#### Parameters
+- `DeltaTime`: The time elapsed since the last update.
+- `Friction`: The friction coefficient affecting movement.
+- `BrakingDeceleration`: The deceleration applied when braking.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput` containing the character's velocity.
+
+#### Behavior
+- Checks for conditions where braking should not be applied, such as zero velocity or when root motion is active.
+- Applies a braking force to the character's velocity, influenced by friction and deceleration parameters.
+- Ensures velocity does not reverse direction during braking.
+- Clamps velocity to zero if it falls below a small threshold or if the character is effectively stopped.
+
+## GetPenetrationAdjustment Method
+
+### Description
+Calculates an adjustment vector to resolve penetration with another object, based on the hit result from a collision.
+
+#### Parameters
+- `HitResult`: The hit result from a collision, providing details about the penetration.
+
+#### Behavior
+- Determines the penetration depth and calculates a vector to move the character out of penetration.
+- Adjusts the vector's magnitude based on character's role (e.g., proxy or not) and the type of object penetrated (geometry or pawn).
+- Clamps the adjustment vector to a maximum size defined by `MaxDepenetrationWithGeometry` or related variables.
+- Returns the calculated adjustment vector.
+
+# FCharacterMovementComponentAsync Documentation
+
+## ResolvePenetration Method
+
+### Description
+Resolves penetration of the character's collision component with world geometry or other objects.
+
+#### Parameters
+- `ProposedAdjustment`: Vector proposing how to adjust the character's position to resolve penetration.
+- `Hit`: Hit result containing information about the penetration.
+- `NewRotation`: Proposed new rotation of the character.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+
+#### Behavior
+- Tries resolving penetration without causing new overlaps.
+- Attempts various strategies if initial resolution fails, like adjusting position and rotation.
+- Combines multiple Minimum Translation Distance (MTD) results for better resolution.
+- Returns `true` if successfully resolved, else `false`.
+
+## MoveComponent_GetPenetrationAdjustment Method
+
+### Description
+Calculates a penetration adjustment vector from the collision hit result.
+
+#### Parameters
+- `Hit`: Hit result from a collision.
+
+#### Behavior
+- Calculates adjustment vector based on penetration depth and a pullback distance.
+- Ensures the vector is constrained to the movement plane.
+- Returns the computed adjustment vector.
+
+## MoveComponent_SlideAlongSurface Method
+
+### Description
+Manages character sliding along a surface after a collision.
+
+#### Parameters
+- `Delta`: Attempted movement delta.
+- `Time`: Fraction of the movement timestep.
+- `Normal`: Normal of the surface for sliding.
+- `Hit`: Collision hit result.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+- `bHandleImpact`: Flag to handle impact events.
+
+#### Behavior
+- Calculates new movement delta for sliding.
+- Performs a safe movement update with the new delta.
+- Adjusts velocity after a secondary collision.
+
+## MoveComponent_ComputeSlideVector Method
+
+### Description
+Computes the vector for sliding along a surface during collision.
+
+#### Parameters
+- `Delta`: Movement delta before the collision.
+- `Time`: Time fraction of the movement step.
+- `Normal`: Normal of the collision surface.
+- `Hit`: Collision hit result.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+
+#### Behavior
+- Projects the Delta onto the plane defined by the Normal.
+- Adjusts the projected vector based on movement constraints.
+- Returns the computed slide vector.
+
+## SlideAlongSurface Method
+
+### Description
+Wrapper for `MoveComponent_SlideAlongSurface`, tailored for character movement.
+
+#### Parameters
+- `Delta`: Movement delta.
+- `Time`: Time fraction of the movement step.
+- `InNormal`: Normal of the collision surface.
+- `Hit`: Collision hit result.
+- `bHandleImpact`: Flag to handle impact events.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+
+#### Behavior
+- Adapts normal for ground movement, preventing upward pushes on steep surfaces.
+- Calls `MoveComponent_SlideAlongSurface` with adjusted parameters.
+- Returns the fraction of Delta applied during the slide.
+
+## ComputeSlideVector Method
+
+### Description
+Calculates the slide vector for character movement.
+
+#### Parameters
+- `Delta`: Original movement delta.
+- `Time`: Time fraction of the movement step.
+- `Normal`: Normal of the collision surface.
+- `Hit`: Collision hit result.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+
+#### Behavior
+- Invokes `MoveComponent_ComputeSlideVector` for initial computation.
+- Handles slope boosting adjustments for falling movement.
+- Returns the final adjusted slide vector.
+
+# Utility Functions and Private Members
 
 ## Utility Functions
 
 ### Description
-Utility functions in `FCharacterMovementComponentAsyncInput` provide additional support and calculations necessary for character movement. These functions handle tasks like constraining movement, applying forces, and managing movement-related calculations.
+Utility functions in `FCharacterMovementComponentAsync` provide additional support and calculations necessary for character movement. These functions handle tasks like constraining movement, applying forces, and managing movement-related calculations.
 
 ### Key Utility Functions
 - **ConstrainInputAcceleration**: Restricts the input acceleration to ensure it aligns with the character's current movement state.
@@ -297,7 +649,7 @@ Utility functions in `FCharacterMovementComponentAsyncInput` provide additional 
 ## Private Members
 
 ### Description
-Private members in `FCharacterMovementComponentAsyncInput` store essential data and state information used in the movement calculations. These members are not directly accessible outside the class but play a crucial role in the internal workings of character movement.
+Private members in `FCharacterMovementComponentAsync` store essential data and state information used in the movement calculations. These members are not directly accessible outside the class but play a crucial role in the internal workings of character movement.
 
 ### Key Private Members
 - **MaxAcceleration**: Stores the maximum acceleration value for the character.
@@ -310,4 +662,96 @@ Private members in `FCharacterMovementComponentAsyncInput` store essential data 
 - **bConstrainToPlane**: Indicates whether movement is constrained to a specific plane.
 - **PlaneConstraintNormal**: The normal vector of the plane to which movement is constrained.
 - **PlaneConstraintOrigin**: The origin point of the plane used for movement constraints.
+
+## FUpdatedComponentAsync::MoveComponent Method
+
+### Description
+Manages the movement of the component in the world, handling collisions and overlaps.
+
+#### Parameters
+- `Delta`: The vector by which to move the component.
+- `NewRotationQuat`: The new rotation for the component after moving.
+- `bSweep`: Flag to determine if sweep tests should be used for collision detection.
+- `OutHit`: Optional parameter to store the result of a collision hit.
+- `MoveFlags`: Flags controlling the movement behavior.
+- `Teleport`: Specifies the type of teleport, if any, to be used during movement.
+- `Input`: Reference to `FUpdatedComponentAsync` containing the current movement state.
+- `Output`: Reference to `FCharacterMovementComponentAsyncOutput`.
+
+#### Behavior
+- Adjusts the component's position and rotation based on `Delta` and `NewRotationQuat`.
+- Performs collision checks if `bSweep` is true and resolves any collisions encountered.
+- Manages overlapping components and triggers appropriate events.
+- Returns `true` if the component successfully moved, otherwise `false`.
+
+## FUpdatedComponentAsync::AreSymmetricRotations Method
+
+### Description
+Checks if two rotations are symmetric, considering the scale of the component.
+
+#### Parameters
+- `A`, `B`: The two rotations to compare.
+- `Scale3D`: The scale of the component.
+
+#### Behavior
+- Compares the Z-axis of both rotations to determine if they are symmetrical.
+- Returns `true` if the rotations are symmetrical, otherwise `false`.
+
+## FUpdatedComponentAsync::PullBackHit Method
+
+### Description
+Adjusts a hit result to account for the desired distance from the surface hit.
+
+#### Parameters
+- `Hit`: The hit result from a collision.
+- `Start`, `End`: Start and end points of the trace that resulted in the hit.
+- `Dist`: The distance of the trace.
+
+#### Behavior
+- Modifies the `Time` property of the hit result to pull back the hit location from the surface.
+- Ensures the adjusted hit result remains within valid bounds.
+
+## FUpdatedComponentAsync::ShouldCheckOverlapFlagToQueueOverlaps Method
+
+### Description
+Determines whether overlap flags should be checked to queue overlaps during movement.
+
+#### Parameters
+- `ThisComponent`: The component being checked for overlaps.
+
+#### Behavior
+- Checks if the current movement requires overlap events to be flagged.
+- Returns `true` if overlaps need to be queued, otherwise `false`.
+
+## FUpdatedComponentAsync::ShouldIgnoreHitResult Method
+
+### Description
+Decides whether a hit result should be ignored based on movement direction and other conditions.
+
+#### Parameters
+- `InWorld`: The world in which the movement occurs.
+- `TestHit`: The hit result to be evaluated.
+- `MovementDirDenormalized`: The direction of movement.
+- `MovingActor`: The actor that is moving.
+- `MoveFlags`: Flags controlling movement behavior.
+
+#### Behavior
+- Evaluates the hit result against various conditions, like "ignore bases" and moving out of penetration.
+- Returns `true` if the hit result should be ignored, otherwise `false`.
+
+## FUpdatedComponentAsync::ShouldIgnoreOverlapResult Method
+
+### Description
+Determines if an overlap result should be ignored based on the actors and components involved.
+
+#### Parameters
+- `World`: The world context.
+- `ThisActor`: The actor performing the movement.
+- `ThisComponent`: The component involved in the overlap.
+- `OtherActor`: The other actor involved in the overlap.
+- `OtherComponent`: The other component involved in the overlap.
+
+#### Behavior
+- Checks if the overlap result is relevant or should be ignored based on the actors and components involved.
+- Returns `true` if the overlap should be ignored, otherwise `false`.
 
