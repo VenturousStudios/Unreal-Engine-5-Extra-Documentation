@@ -110,13 +110,6 @@ void FCharacterMovementComponentAsyncInput::PerformMovement(float DeltaSeconds, 
 					Output.AnimRootMotionVelocity = CalcAnimRootMotionVelocity(RootMotion.AnimTransform.GetTranslation(), RootMotion.TimeAccumulated, Velocity);
 					Output.Velocity = ConstrainAnimRootMotionVelocity(Output.AnimRootMotionVelocity, Output.Velocity, Output);
 				}
-
-				/*UE_LOG(LogRootMotion, Log, TEXT("PerformMovement WorldSpaceRootMotion Translation: %s, Rotation: %s, Actor Facing: %s, Velocity: %s")
-					, *RootMotionParams.GetRootMotionTransform().GetTranslation().ToCompactString()
-					, *RootMotionParams.GetRootMotionTransform().GetRotation().Rotator().ToCompactString()
-					, *CharacterOwner->GetActorForwardVector().ToCompactString()
-					, *Velocity.ToCompactString()
-				);*/
 			}
 			else
 			{
@@ -317,9 +310,6 @@ void FCharacterMovementComponentAsyncInput::UpdateBasedMovement(float DeltaSecon
 		// move attached actor
 		if (false)//bFastAttachedMove) // TODO bFastAttachedMove
 		{
-			// we're trusting no other obstacle can prevent the move here
-			//	UpdatedComponent->SetWorldLocationAndRotation(NewWorldPos, FinalQuat, false);
-
 			UpdatedComponentInput->SetPosition(NewWorldPos);
 			UpdatedComponentInput->SetRotation(FinalQuat);
 		}
@@ -342,10 +332,8 @@ void FCharacterMovementComponentAsyncInput::UpdateBasedMovement(float DeltaSecon
 		}
 
 		MovementBaseAsyncData.Validate(Output); // ensure we haven't changed movement base
-		if (MovementBaseAsyncData.bMovementBaseIsSimulatedCached /*MovementBase->IsSimulatingPhysics() && CharacterOwner->GetMesh()*/)
+		if (MovementBaseAsyncData.bMovementBaseIsSimulatedCached )
 		{
-			//CharacterOwner->GetMesh()->ApplyDeltaToAllPhysicsTransforms(DeltaPosition, DeltaQuat);
-
 			// If we hit this multiple times, our DeltaPostion/DeltaQuat is being stomped. Do we need to call for each, or just latest?
 			ensure(Output.bShouldApplyDeltaToMeshPhysicsTransforms == false);
 
@@ -363,14 +351,11 @@ void FCharacterMovementComponentAsyncInput::StartNewPhysics(float deltaTime, int
 
 	if (UpdatedComponentInput->bIsSimulatingPhysics)
 	{
-		//UE_LOG(LogCharacterMovement, Log, TEXT("UCharacterMovementComponent::StartNewPhysics: UpdateComponent (%s) is simulating physics - aborting."), UpdatedComponent->GetPathName());
 		return;
 	}
 
 	const bool bSavedMovementInProgress = Output.bMovementInProgress;
 	Output.bMovementInProgress = true;
-
-	// TODO Other Movement Modes
 	switch (Output.MovementMode)
 	{
 	case MOVE_None:
@@ -378,10 +363,6 @@ void FCharacterMovementComponentAsyncInput::StartNewPhysics(float deltaTime, int
 	case MOVE_Walking:
 		PhysWalking(deltaTime, Iterations, Output);
 		break;
-	// TODO Nav walking
-	/*case MOVE_NavWalking:
-		PhysNavWalking(deltaTime, Iterations);
-		break;*/
 	case MOVE_Falling:
 		PhysFalling(deltaTime, Iterations, Output);
 		break;
@@ -393,14 +374,14 @@ void FCharacterMovementComponentAsyncInput::StartNewPhysics(float deltaTime, int
 	Output.bMovementInProgress = bSavedMovementInProgress;
 	if (bDeferUpdateMoveComponent)
 	{
-		ensure(false); // TODO
+		ensure(false);
 	}
 }
 
 void FCharacterMovementComponentAsyncInput::PhysWalking(float deltaTime, int32 Iterations, FCharacterMovementComponentAsyncOutput& Output) const
 {
 
-	const FCharacterMovementComponentAsyncInput& Input = *this; // TODO Refactor
+	const FCharacterMovementComponentAsyncInput& Input = *this;
 
 	if (deltaTime < UCharacterMovementComponent::MIN_TICK_TIME)
 	{
@@ -410,8 +391,8 @@ void FCharacterMovementComponentAsyncInput::PhysWalking(float deltaTime, int32 I
 	FVector& Velocity = Output.Velocity;
 	FVector& Acceleration = Output.Acceleration;
 
-	// TODO Fix? We ensure when filling inputs that we have controller and owner, os this can't be hit atm.
-	if (false)//!CharacterOwner || (!CharacterOwner->Controller && !bRunPhysicsWithNoController && !Output.RootMotionParams.bHasRootMotion && !Output.CurrentRootMotion.HasOverrideVelocity() && (LocalRole != ROLE_SimulatedProxy)))
+
+	if (false)
 	{
 		Acceleration = FVector::ZeroVector;
 		Velocity = FVector::ZeroVector;
@@ -456,7 +437,6 @@ void FCharacterMovementComponentAsyncInput::PhysWalking(float deltaTime, int32 I
 		if (!RootMotion.bHasAnimRootMotion && !RootMotion.bHasOverrideRootMotion)
 		{
 			CalcVelocity(timeTick, GroundFriction, false, GetMaxBrakingDeceleration(Output), Output);
-			//devCode(ensureMsgf(!Velocity.ContainsNaN(), TEXT("PhysWalking: Velocity contains NaN after CalcVelocity (%s)\n%s"), *GetPathNameSafe(this), *Velocity.ToString()));
 		}
 
 		ApplyRootMotionToVelocity(timeTick, Output);
@@ -549,8 +529,6 @@ void FCharacterMovementComponentAsyncInput::PhysWalking(float deltaTime, int32 I
 				}
 
 				AdjustFloorHeight(Output);
-
-				//SetBase(CurrentFloor.HitResult.Component.Get(), CurrentFloor.HitResult.BoneName);
 				Output.NewMovementBase = Output.CurrentFloor.HitResult.Component.Get();
 				Output.NewMovementBaseOwner = Output.CurrentFloor.HitResult.GetActor();
 			}
@@ -582,7 +560,6 @@ void FCharacterMovementComponentAsyncInput::PhysWalking(float deltaTime, int32 I
 			// Make velocity reflect actual move
 			if (!Output.bJustTeleported && !RootMotion.bHasAnimRootMotion && !RootMotion.bHasOverrideRootMotion && timeTick >= UCharacterMovementComponent::MIN_TICK_TIME)
 			{
-				// TODO-RootMotionSource: Allow this to happen during partial override Velocity, but only set allowed axes?
 				Velocity = (UpdatedComponentInput->GetPosition() - OldLocation) / timeTick;
 				MaintainHorizontalGroundVelocity(Output);
 			}
@@ -637,7 +614,6 @@ void FCharacterMovementComponentAsyncInput::PhysFalling(float deltaTime, int32 I
 		if (!RootMotion.bHasAnimRootMotion && !RootMotion.bHasOverrideRootMotion)
 		{
 			{
-				// Acceleration = FallAcceleration for CalcVelocity(), but we restore it after using it.
 				TGuardValue<FVector> RestoreAcceleration(Output.Acceleration, FallAcceleration);
 				Velocity.Z = 0.f;
 				CalcVelocity(timeTick, FallingLateralFriction, false, MaxDecel, Output);
@@ -761,7 +737,6 @@ void FCharacterMovementComponentAsyncInput::PhysFalling(float deltaTime, int32 I
 				FVector AirControlAccel = Output.Acceleration;
 				if (bHasLimitedAirControl)
 				{
-					// Compute VelocityNoAirControl
 					{
 						// Find velocity *without* acceleration.
 						TGuardValue<FVector> RestoreAcceleration(Output.Acceleration, FVector::ZeroVector);
@@ -900,7 +875,7 @@ void FCharacterMovementComponentAsyncInput::PhysicsRotation(float DeltaTime, FCh
 		return;
 	}
 
-	if (!bHasValidData/* || (!CharacterOwner->Controller && !bRunPhysicsWithNoController)*/)
+	if (!bHasValidData)
 	{
 		return;
 	}
@@ -1016,13 +991,11 @@ void FCharacterMovementComponentAsyncInput::MoveAlongFloor(const FVector& InVelo
 				const FVector GravDir(0.f, 0.f, -1.f);
 				if (!StepUp(GravDir, Delta * (1.f - PercentTimeApplied), Hit, Output, OutStepDownResult))
 				{
-					//UE_LOG(LogCharacterMovement, Verbose, TEXT("- StepUp (ImpactNormal %s, Normal %s"), *Hit.ImpactNormal.ToString(), *Hit.Normal.ToString());
 					HandleImpact(Hit, Output, LastMoveTimeSlice, RampVector);
 					SlideAlongSurface(Delta, 1.f - PercentTimeApplied, Hit.Normal, Hit, true, Output);
 				}
 				else
 				{
-					//UE_LOG(LogCharacterMovement, Verbose, TEXT("+ StepUp (ImpactNormal %s, Normal %s"), *Hit.ImpactNormal.ToString(), *Hit.Normal.ToString());
 					if (!bMaintainHorizontalGroundVelocity)
 					{
 						// Don't recalculate velocity based on this height adjustment, if considering vertical adjustments. Only consider horizontal movement.
@@ -1159,13 +1132,6 @@ bool FCharacterMovementComponentAsyncInput::MoveUpdatedComponent(const FVector& 
 
 bool FCharacterMovementComponentAsyncInput::SafeMoveUpdatedComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult& OutHit, FCharacterMovementComponentAsyncOutput& Output, ETeleportType Teleport) const
 {
-	// Ensuring that we have this when filling inputs
-	/*if (UpdatedComponent == NULL)
-	{
-		OutHit.Reset(1.f);
-		return false;
-	}*/
-
 	bool bMoveResult = false;
 
 	// Scope for move flags
@@ -1227,11 +1193,7 @@ void FCharacterMovementComponentAsyncInput::SetMovementMode(EMovementMode NewMov
 	// If trying to use NavWalking but there is no navmesh, use walking instead.
 	if (NewMovementMode == MOVE_NavWalking)
 	{
-		ensure(false); // TOOD
-		/*if (GetNavData() == nullptr)
-		{
-			NewMovementMode = MOVE_Walking;
-		}*/
+		ensure(false);
 	}
 
 	// Do nothing if nothing is changing.
@@ -1363,7 +1325,7 @@ void FCharacterMovementComponentAsyncInput::FindFloor(const FVector& CapsuleLoca
 
 			}
 
-			if (false)//!bForceNextFloorCheck && !IsActorBasePendingKill && MovementBase)
+			if (false)
 			{
 				OutFloorResult = Output.CurrentFloor;
 				bNeedToValidateFloor = false;
@@ -1421,7 +1383,6 @@ void FCharacterMovementComponentAsyncInput::ComputeFloorDist(const FVector& Caps
 
 	float PawnRadius = Output.ScaledCapsuleRadius;
 	float PawnHalfHeight = Output.ScaledCapsuleHalfHeight;
-	//CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleSize(PawnRadius, PawnHalfHeight);
 
 	bool bSkipSweep = false;
 	if (DownwardSweepResult != NULL && DownwardSweepResult->IsValidBlockingHit())
@@ -1644,7 +1605,7 @@ void FCharacterMovementComponentAsyncInput::CalcVelocity(float DeltaTime, float 
 {
 	// Do not update velocity when using root motion or when SimulatedProxy and not simulating root motion - SimulatedProxy are repped their Velocity
 	if (!bHasValidData || RootMotion.bHasAnimRootMotion || DeltaTime < UCharacterMovementComponent::MIN_TICK_TIME
-		|| (/*CharacterOwner && */CharacterInput->LocalRole == ROLE_SimulatedProxy && !bWasSimulatingRootMotion))
+		|| (CharacterInput->LocalRole == ROLE_SimulatedProxy && !bWasSimulatingRootMotion))
 	{
 		return;
 	}
@@ -1906,31 +1867,6 @@ bool FCharacterMovementComponentAsyncInput::ResolvePenetration(const FVector& Pr
 	const FVector Adjustment = ConstrainDirectionToPlane(ProposedAdjustment);
 	if (!Adjustment.IsZero() && UpdatedComponentInput->UpdatedComponent)
 	{
-	//	QUICK_SCOPE_CYCLE_COUNTER(STAT_MovementComponent_ResolvePenetration);
-
-		// See if we can fit at the adjusted location without overlapping anything.
-		//AActor* ActorOwner = UpdatedComponent->GetOwner();
-		/*if (!ActorOwner)
-		{
-			return false;
-		}*/
-
-		/*UE_LOG(LogMovement, Verbose, TEXT("ResolvePenetration: %s.%s at location %s inside %s.%s at location %s by %.3f (netmode: %d)"),
-			*ActorOwner->GetName(),
-			*UpdatedComponent->GetName(),
-			*UpdatedComponent->GetComponentLocation().ToString(),
-			*GetNameSafe(Hit.GetActor()),
-			*GetNameSafe(Hit.GetComponent()),
-			Hit.Component.IsValid() ? *Hit.GetComponent()->GetComponentLocation().ToString() : TEXT("<unknown>"),
-			Hit.PenetrationDepth,
-			(uint32)GetNetMode());*/
-
-		// We really want to make sure that precision differences or differences between the overlap test and sweep tests don't put us into another overlap,
-		// so make the overlap test a bit more restrictive.
-		//const float OverlapInflation = MovementComponentCVars::PenetrationOverlapCheckInflation;
-		// (Applying this to collision shape in inputs)
-
-
 		//FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MovementOverlapTest), false, Owner);
 		bool bEncroached = World->OverlapBlockingTestByChannel(Hit.TraceStart + Adjustment, NewRotation, CollisionChannel, UpdatedComponentInput->CollisionShape, UpdatedComponentInput->MoveComponentQueryParams, UpdatedComponentInput->MoveComponentCollisionResponseParams);
 		//bool bEncroached = OverlapTest(Hit.TraceStart + Adjustment, NewRotationQuat, UpdatedPrimitive->GetCollisionObjectType(), UpdatedPrimitive->GetCollisionShape(OverlapInflation), ActorOwner);
@@ -1939,9 +1875,6 @@ bool FCharacterMovementComponentAsyncInput::ResolvePenetration(const FVector& Pr
 			// Move without sweeping.
 			MoveUpdatedComponent(Adjustment, NewRotation, false, Output, nullptr, ETeleportType::TeleportPhysics);
 			//UE_LOG(LogMovement, Verbose, TEXT("ResolvePenetration:   teleport by %s"), *Adjustment.ToString());
-			
-			
-			// This line is from UCharacterMovementComponent::ResolvePenetrationImpl
 			// Rest of this func is from MovementComponent impl
 			Output.bJustTeleported = true;
 			return true;
@@ -2188,9 +2121,9 @@ bool FUpdatedComponentAsyncInput::MoveComponent(const FVector& Delta, const FQua
 						UPrimitiveComponent* OverlapComponent = TestHit.Component.Get();
 
 						// Overlaps are speculative, this flag will be chcked when applying outputs.
-						if (OverlapComponent && (true/*OverlapComponent->GetGenerateOverlapEvents()*/ || bForceGatherOverlaps))
+						if (OverlapComponent && (true || bForceGatherOverlaps))
 						{
-							if (!FUpdatedComponentAsyncInput::ShouldIgnoreOverlapResult(Input.World, nullptr/*Actor*/, *UpdatedComponent, TestHit.GetActor(), *OverlapComponent /*bCheckOverlapFlags=!bForceGatherOverlaps*/))
+							if (!FUpdatedComponentAsyncInput::ShouldIgnoreOverlapResult(Input.World, nullptr, *UpdatedComponent, TestHit.GetActor(), *OverlapComponent ))
 							{
 								// don't process touch events after initial blocking hits
 								if (BlockingHitIndex >= 0 && TestHit.Time > Hits[BlockingHitIndex].Time)
@@ -2372,7 +2305,7 @@ bool FUpdatedComponentAsyncInput::ShouldIgnoreOverlapResult(const UWorld* World,
 	}
 
 	// Cannot read this on PT, check when applying speculative overlaps.
-	if (!World)// || OtherActor == World->GetWorldSettings() || !OtherActor->IsActorInitialized())
+	if (!World)
 	{
 		return true;
 	}
