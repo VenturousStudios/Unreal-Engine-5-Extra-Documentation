@@ -725,6 +725,644 @@ Determines if an overlap result should be ignored based on the actors and compon
 - Checks if the overlap result is relevant or should be ignored based on the actors and components involved.
 - Returns `true` if the overlap should be ignored, otherwise `false`.
 
+## HandleSlopeBoosting
+
+### Description
+The `HandleSlopeBoosting` method adjusts the character's movement when sliding on slopes. It modifies the slide result based on the character's movement delta, time, surface normal, and hit result.
+
+### Parameters
+- `const FVector& SlideResult`: The result of the slide movement on the slope.
+- `const FVector& Delta`: The movement delta.
+- `const float Time`: The time factor in the movement.
+- `const FVector& Normal`: The normal of the sliding surface.
+- `const FHitResult& Hit`: The hit result from the collision detection.
+- `FCharacterMovementComponentAsyncOutput& Output`: The output containing movement data.
+
+### Returns
+- `FVector`: The adjusted result of the slide movement.
+
+---
+
+## OnCharacterStuckInGeometry
+
+### Description
+`OnCharacterStuckInGeometry` is triggered when the character is detected to be stuck in geometry. It updates the character's movement state to reflect that they are stuck.
+
+### Parameters
+- `const FHitResult* Hit`: Pointer to the hit result that indicates the character is stuck.
+- `FCharacterMovementComponentAsyncOutput& Output`: The output structure where the character's movement state is updated.
+
+### Returns
+- None (void method).
+
+---
+
+## CanStepUp
+
+### Description
+`CanStepUp` determines whether the character can step up onto an encountered surface based on the hit result and current movement mode.
+
+### Parameters
+- `const FHitResult& Hit`: The hit result from collision detection.
+- `FCharacterMovementComponentAsyncOutput& Output`: The output containing the current movement mode.
+
+### Returns
+- `bool`: `true` if the character can step up onto the surface, `false` otherwise.
+
+---
+
+## StepUp
+
+### Description
+`StepUp` executes the logic for stepping up onto a surface. It considers factors like gravity direction, movement delta, hit result, and the character's capsule dimensions.
+
+### Parameters
+- `const FVector& GravDir`: The direction of gravity.
+- `const FVector& Delta`: The movement delta.
+- `const FHitResult& InHit`: The hit result from collision detection.
+- `FCharacterMovementComponentAsyncOutput& Output`: The output structure for the movement.
+- `FStepDownResult* OutStepDownResult`: (Optional) Result of stepping down from the surface.
+
+### Returns
+- `bool`: `true` if the step-up action is successful, `false` otherwise.
+
+---
+
+## CanWalkOffLedges
+
+### Description
+`CanWalkOffLedges` checks if the character is allowed to walk off ledges based on their crouching state and a configurable setting.
+
+### Parameters
+- `FCharacterMovementComponentAsyncOutput& Output`: The output containing the character's crouching state.
+
+### Returns
+- `bool`: `true` if the character can walk off ledges, `false` otherwise.
+
+---
+
+## GetLedgeMove
+
+### Description
+`GetLedgeMove` determines the movement direction when the character is near a ledge. It checks for possible ledge movement in different directions.
+
+### Parameters
+- `const FVector& OldLocation`: The character's previous location.
+- `const FVector& Delta`: The movement delta.
+- `const FVector& GravDir`: The direction of gravity.
+- `FCharacterMovementComponentAsyncOutput& Output`: The output structure for movement data.
+
+### Returns
+- `FVector`: The direction vector for ledge movement.
+
+---
+
+## CheckLedgeDirection
+
+### Description
+`CheckLedgeDirection` checks if a given direction is viable for ledge movement. It performs collision checks to determine if the character can move in that direction without falling.
+
+### Parameters
+- `const FVector& OldLocation`: The character's previous location.
+- `const FVector& SideStep`: The sidestep direction to check.
+- `const FVector& GravDir`: The direction of gravity.
+- `FCharacterMovementComponentAsyncOutput& Output`: The output structure for movement data.
+
+### Returns
+- `bool`: `true` if the direction is viable for ledge movement, `false` otherwise.
+
+---
+
+## GetPawnCapsuleExtent
+
+### Description
+`GetPawnCapsuleExtent` retrieves the extent of the character's capsule component. It considers shrinkage parameters to provide the actual capsule extent.
+
+### Parameters
+- `const EShrinkCapsuleExtent ShrinkMode`: The mode of capsule shrinkage.
+- `const float CustomShrinkAmount`: The amount by which the capsule should be shrunk.
+- `FCharacterMovementComponentAsyncOutput& Output`: The output containing the character's capsule dimensions.
+
+### Returns
+- `FVector`: The extent of the character's capsule.
+
+## TwoWallAdjust
+
+### Description
+The `TwoWallAdjust` method adjusts the character's movement when colliding with two walls. It recalculates the movement delta to ensure the character slides along the surface without penetrating or stopping abruptly.
+
+### Parameters
+- `FVector& OutDelta`: The movement delta to be adjusted.
+- `const FHitResult& Hit`: The hit result from the latest collision.
+- `const FVector& OldHitNormal`: The normal of the previously collided surface.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the movement data.
+
+### Returns
+- None (void method), but `OutDelta` is modified.
+
+---
+
+## RevertMove
+
+### Description
+`RevertMove` is used to revert the character's position to a previous state. This method is typically called when a movement attempt fails due to collisions or other constraints.
+
+### Parameters
+- `const FVector& OldLocation`: The previous location of the character to revert to.
+- `UPrimitiveComponent* OldBase`: The previous base component the character was standing on.
+- `const FVector& PreviousBaseLocation`: The previous location of the base component.
+- `const FFindFloorResult& OldFloor`: The previous floor result.
+- `bool bFailMove`: Indicates whether the move should be marked as failed.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure for the movement state.
+
+### Returns
+- None (void method).
+
+---
+
+## HandleWalkingOffLedge
+
+### Description
+`HandleWalkingOffLedge` manages the character's behavior when they walk off a ledge, such as transitioning to a falling state and adjusting movement based on the ledge's characteristics.
+
+### Parameters
+- `const FVector& PreviousFloorImpactNormal`: The normal of the floor impact before walking off the ledge.
+- `const FVector& PreviousFloorContactNormal`: The normal of the floor contact before the ledge.
+- `const FVector& PreviousLocation`: The character's location before walking off the ledge.
+- `float TimeDelta`: The time delta for the movement frame.
+
+### Returns
+- None (void method).
+
+---
+
+## StartFalling
+
+### Description
+`StartFalling` initiates the falling state for the character. It calculates the remaining time and adjusts the movement mode to falling.
+
+### Parameters
+- `int32 Iterations`: Number of movement iterations.
+- `float remainingTime`: Remaining time for the movement frame.
+- `float timeTick`: The time tick for the movement frame.
+- `const FVector& Delta`: The movement delta.
+- `const FVector& subLoc`: The sub-location for the movement.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure for the movement state.
+
+### Returns
+- None (void method).
+
+---
+
+## SetBaseFromFloor
+
+### Description
+`SetBaseFromFloor` sets the character's movement base from the floor result. It determines whether the character is standing on a walkable floor and updates the movement base accordingly.
+
+### Parameters
+- `const FFindFloorResult& FloorResult`: The result of the floor check.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the new movement base and owner.
+
+### Returns
+- None (void method).
+
+---
+
+## AdjustFloorHeight
+
+### Description
+`AdjustFloorHeight` adjusts the character's height based on the floor result. It ensures the character maintains a consistent distance from the floor surface.
+
+### Parameters
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the current floor data and the character's position.
+
+### Returns
+- None (void method).
+
+---
+
+## ComputePerchResult
+
+### Description
+`ComputePerchResult` calculates if the character can perch on an edge. It uses the test radius, hit result, and maximum floor distance to determine if perching is possible.
+
+### Parameters
+- `const float TestRadius`: The radius to test for perching.
+- `const FHitResult& InHit`: The hit result from collision detection.
+- `const float InMaxFloorDist`: The maximum distance to the floor for perching.
+- `FFindFloorResult& OutPerchFloorResult`: The result of the perch test.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure for movement data.
+
+### Returns
+- `bool`: `true` if the character can perch on the edge, `false` otherwise.
+
+---
+
+## GetPerchRadiusThreshold
+
+### Description
+`GetPerchRadiusThreshold` retrieves the threshold radius for perching. This value determines how close to an edge the character must be to perch.
+
+### Parameters
+- None.
+
+### Returns
+- `float`: The threshold radius for perching.
+
+## GetFallingLateralAcceleration
+
+### Description
+`GetFallingLateralAcceleration` calculates the lateral acceleration of the character while in a falling state. It factors in air control and other conditions affecting movement during free fall.
+
+### Parameters
+- `float DeltaTime`: The time elapsed since the last update.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing acceleration and other movement data.
+
+### Returns
+- `FVector`: The calculated lateral acceleration vector during falling.
+
+---
+
+## LimitAirControl
+
+### Description
+`LimitAirControl` limits the character's air control based on current conditions, such as collision normals and landing spot validity. It modifies the fall acceleration to prevent unrealistic movement in air.
+
+### Parameters
+- `float DeltaTime`: The time elapsed since the last update.
+- `const FVector& FallAcceleration`: The current fall acceleration.
+- `const FHitResult& HitResult`: The hit result from collision detection.
+- `bool bCheckForValidLandingSpot`: Flag to check for a valid landing spot.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing movement data.
+
+### Returns
+- `FVector`: The modified air control acceleration vector.
+
+---
+
+## NewFallVelocity
+
+### Description
+`NewFallVelocity` calculates the new velocity of the character during a fall, taking into account gravity and other factors.
+
+### Parameters
+- `const FVector& InitialVelocity`: The initial velocity at the start of the fall.
+- `const FVector& Gravity`: The gravity vector affecting the fall.
+- `float DeltaTime`: The time elapsed since the last update.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure for the new velocity.
+
+### Returns
+- `FVector`: The updated falling velocity.
+
+---
+
+## IsValidLandingSpot
+
+### Description
+`IsValidLandingSpot` checks if a given location is a valid spot for the character to land on. It considers factors like walkable surfaces and the character's capsule size.
+
+### Parameters
+- `const FVector& CapsuleLocation`: The location of the character's capsule.
+- `const FHitResult& Hit`: The hit result from collision detection.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure with movement and character data.
+
+### Returns
+- `bool`: `true` if the landing spot is valid, `false` otherwise.
+
+---
+
+## ProcessLanded
+
+### Description
+`ProcessLanded` handles the character's landing logic after falling. It updates physics settings and initiates new movement physics based on the landing.
+
+### Parameters
+- `const FHitResult& Hit`: The hit result from landing.
+- `float remainingTime`: Remaining time for the movement frame.
+- `int32 Iterations`: Number of movement iterations.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure for the movement state.
+
+### Returns
+- None (void method).
+
+---
+
+## SetPostLandedPhysics
+
+### Description
+`SetPostLandedPhysics` sets the physics properties of the character immediately after landing. It updates movement modes and other related settings.
+
+### Parameters
+- `const FHitResult& Hit`: The hit result from landing.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure for the movement state and mode.
+
+### Returns
+- None (void method).
+
+---
+
+## ShouldCheckForValidLandingSpot
+
+### Description
+`ShouldCheckForValidLandingSpot` determines whether the character should check for a valid landing spot based on current movement and collision data.
+
+### Parameters
+- `float DeltaTime`: The time elapsed since the last update.
+- `const FVector& Delta`: The movement delta.
+- `const FHitResult& Hit`: The hit result from collision detection.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure with movement data.
+
+### Returns
+- `bool`: `true` if a valid landing spot check is necessary, `false` otherwise.
+
+---
+
+## ShouldRemainVertical
+
+### Description
+`ShouldRemainVertical` checks if the character should maintain a vertical orientation during movement. This is typically true when walking or falling.
+
+### Parameters
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's movement mode.
+
+### Returns
+- `bool`: `true` if the character should remain vertical, `false` otherwise.
+
+## 25. CanAttemptJump
+
+### Description
+`CanAttemptJump` determines if the character is in a suitable state to attempt a jump. This includes checks for jump permissions, the current movement mode, and crouching status.
+
+### Parameters
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing details about the character's current state and movement mode.
+
+### Returns
+- `bool`: `true` if a jump can be attempted, `false` otherwise.
+
+---
+
+## DoJump
+
+### Description
+`DoJump` executes the jumping logic for the character. It sets the character's vertical velocity and changes the movement mode to falling if the jump is successful.
+
+### Parameters
+- `bool bReplayingMoves`: Indicates whether the movement is being replayed (for network correction, for example).
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure where the character's velocity and movement mode are updated.
+
+### Returns
+- `bool`: `true` if the jump is successfully initiated, `false` otherwise.
+
+---
+
+## IsJumpAllowed
+
+### Description
+`IsJumpAllowed` checks if the character is allowed to jump based on the character's navigation and movement state properties.
+
+### Parameters
+- None.
+
+### Returns
+- `bool`: `true` if jumping is allowed, `false` otherwise.
+
+---
+
+## GetMaxSpeed
+
+### Description
+`GetMaxSpeed` retrieves the maximum speed of the character based on the current movement mode, such as walking, swimming, or flying.
+
+### Parameters
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's current movement mode.
+
+### Returns
+- `float`: The maximum speed applicable to the current movement mode.
+
+---
+
+## IsCrouching
+
+### Description
+`IsCrouching` checks if the character is currently in a crouching state.
+
+### Parameters
+- `const FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's crouching status.
+
+### Returns
+- `bool`: `true` if the character is crouching, `false` otherwise.
+
+---
+
+## IsFalling
+
+### Description
+`IsFalling` checks if the character is currently in a falling state. This typically means the character is not grounded and is affected by gravity.
+
+### Parameters
+- `const FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's movement mode.
+
+### Returns
+- `bool`: `true` if the character is falling, `false` otherwise.
+
+---
+
+## IsFlying
+
+### Description
+`IsFlying` checks if the character is currently in a flying state. This is typically used for characters that have a flying movement mode enabled.
+
+### Parameters
+- `const FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's movement mode.
+
+### Returns
+- `bool`: `true` if the character is flying, `false` otherwise.
+
+---
+
+## IsMovingOnGround
+
+### Description
+`IsMovingOnGround` checks if the character is currently moving on the ground. This is used to determine if the character is walking or navigating on walkable surfaces.
+
+### Parameters
+- `const FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's movement mode.
+
+### Returns
+- `bool`: `true` if the character is moving on the ground, `false` otherwise.
+
+## IsExceedingMaxSpeed
+
+### Description
+`IsExceedingMaxSpeed` checks if the character's current velocity exceeds a specified maximum speed limit. This method is useful for enforcing speed constraints in various movement modes.
+
+### Parameters
+- `float MaxSpeed`: The maximum speed limit to check against.
+- `const FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's current velocity.
+
+### Returns
+- `bool`: `true` if the current speed exceeds the specified maximum, `false` otherwise.
+
+---
+
+## ComputeOrientToMovementRotation
+
+### Description
+`ComputeOrientToMovementRotation` calculates the rotation that the character should have based on its current movement direction. This method is essential for orienting characters in the direction they are moving.
+
+### Parameters
+- `const FRotator& CurrentRotation`: The current rotation of the character.
+- `float DeltaTime`: The time elapsed since the last update.
+- `FRotator& DeltaRotation`: The rotation delta to be applied.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's acceleration and desired movement direction.
+
+### Returns
+- `FRotator`: The new rotation aligned with the direction of movement.
+
+---
+
+## RestorePreAdditiveRootMotionVelocity
+
+### Description
+`RestorePreAdditiveRootMotionVelocity` restores the character's velocity to its state before any additive root motion was applied. This is crucial for maintaining consistent movement physics when using root motion animations.
+
+### Parameters
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's velocity and root motion flags.
+
+### Returns
+- None (void method).
+
+---
+
+## ApplyRootMotionToVelocity
+
+### Description
+`ApplyRootMotionToVelocity` applies the effects of root motion to the character's velocity. This includes handling override and additive root motion from animations.
+
+### Parameters
+- `float deltaTime`: The time elapsed since the last update.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's velocity and root motion data.
+
+### Returns
+- None (void method).
+
+---
+
+## ConstrainAnimRootMotionVelocity
+
+### Description
+`ConstrainAnimRootMotionVelocity` constrains the velocity generated by animated root motion. It ensures that the character's vertical velocity is not overridden when in a falling state.
+
+### Parameters
+- `const FVector& RootMotionVelocity`: The velocity generated by root motion animation.
+- `const FVector& CurrentVelocity`: The current velocity of the character.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's movement state.
+
+### Returns
+- `FVector`: The constrained velocity after considering root motion.
+
+---
+
+## CalcAnimRootMotionVelocity
+
+### Description
+`CalcAnimRootMotionVelocity` calculates the velocity that should be applied to the character based on root motion data from animations over a given time frame.
+
+### Parameters
+- `const FVector& RootMotionDeltaMove`: The movement delta generated by the root motion.
+- `float DeltaSeconds`: The time frame over which the root motion is applied.
+- `const FVector& CurrentVelocity`: The current velocity of the character.
+
+### Returns
+- `FVector`: The calculated velocity based on root motion.
+
+---
+
+## GetAirControl
+
+### Description
+`GetAirControl` calculates the character's ability to control their movement while in the air. It takes into account factors like air control efficiency and current fall acceleration.
+
+### Parameters
+- `float DeltaTime`: The time elapsed since the last update.
+- `float TickAirControl`: The air control factor for the current tick.
+- `const FVector& FallAcceleration`: The acceleration during falling.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's movement data.
+
+### Returns
+- `FVector`: The calculated air control vector.
+
+---
+
+## FaceRotation
+
+### Description
+`FaceRotation` updates the character's rotation to face a new direction. This is commonly used to orient the character based on controller input or movement direction.
+
+### Parameters
+- `FRotator NewControlRotation`: The new rotation the character should face.
+- `float DeltaTime`: The time elapsed since the last update.
+- `const FCharacterMovementComponentAsyncInput& Input`: Input structure containing character rotation flags.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure where the character's new rotation is set.
+
+### Returns
+- None (void method).
+
+## CheckJumpInput
+
+### Description
+`CheckJumpInput` processes jump-related input for the character. It determines if jump conditions are met and initiates a jump if possible, while also handling jump count and timing.
+
+### Parameters
+- `float DeltaSeconds`: The time elapsed since the last frame or simulation step.
+- `const FCharacterMovementComponentAsyncInput& Input`: Input structure containing the jumping logic and related parameters.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure where the jump-related states and counters are updated.
+
+### Returns
+- None (void method).
+
+---
+
+## ClearJumpInput
+
+### Description
+`ClearJumpInput` manages the clearing of jump input states. It ensures that jump input is recognized for the appropriate duration and resets relevant jump states after processing.
+
+### Parameters
+- `float DeltaSeconds`: The time elapsed since the last frame or simulation step.
+- `const FCharacterMovementComponentAsyncInput& Input`: Input structure containing jump-related information.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure where jump input states are reset or updated.
+
+### Returns
+- None (void method).
+
+---
+
+## CanJump
+
+### Description
+`CanJump` evaluates whether the character is currently able to perform a jump. This method checks various conditions such as the character's jump count, the current movement state, and crouch status.
+
+### Parameters
+- `const FCharacterMovementComponentAsyncInput& Input`: Input structure with methods and properties related to jumping capabilities.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure containing the character's current jump count and other relevant states.
+
+### Returns
+- `bool`: `true` if the character can perform a jump, `false` otherwise.
+
+---
+
+## ResetJumpState
+
+### Description
+`ResetJumpState` resets the character's jump state, including the jump count, jump key hold time, and other related flags. This method is typically called when the character lands or when jump input is no longer valid.
+
+### Parameters
+- `const FCharacterMovementComponentAsyncInput& Input`: Input structure containing jump-related information.
+- `FCharacterMovementComponentAsyncOutput& Output`: Output structure where the character's jump states are reset.
+
+### Returns
+- None (void method).
 
 # Utility Functions and Private Members
 
